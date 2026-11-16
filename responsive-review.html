@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>六副带鹰 · 多窗口布局对比</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #edf1f7; color: #172337; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; }
+    main { max-width: 1920px; margin: auto; padding: 48px 48px 36px; }
+    header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 38px; }
+    h1 { font-size: 31px; margin: 0 0 9px; letter-spacing: -.7px; }
+    header p { color: #7a879b; margin: 0; font-size: 15px; }
+    .tag { background: #e0eaff; border: 1px solid #cfdefb; color: #3c67b5; padding: 8px 13px; border-radius: 8px; font-size: 13px; }
+    .views { display: grid; grid-template-columns: minmax(0, 1.9fr) minmax(0, .9fr) minmax(0, .55fr); gap: 26px; align-items: start; }
+    figure { margin: 0; min-width: 0; }
+    figcaption { margin-bottom: 16px; }
+    figcaption strong { display: block; font-size: 18px; }
+    figcaption small { display: block; margin-top: 7px; color: #8190a6; font-size: 12px; }
+    img { display: block; width: 100%; height: auto; border: 1px solid #dce3ed; border-radius: 14px; box-shadow: 0 10px 35px #1934560d; }
+    .note { padding: 21px 23px; margin-top: 22px; background: #ffffffb5; border: 1px solid #e0e6f0; border-radius: 14px; }
+    .note strong { display: block; font-size: 15px; margin-bottom: 13px; }
+    .note p { font-size: 13px; color: #728199; line-height: 1.9; margin: 2px 0; }
+    .note b { font-weight: 650; color: #375584; }
+    footer { border-top: 1px solid #dbe3ee; margin-top: 32px; padding-top: 19px; text-align: center; color: #91a0b4; font-size: 12px; }
+    @media (max-width: 900px) { main { padding: 24px; } header { align-items: flex-start; gap: 14px; } h1 { font-size: 23px; } .tag { display: none; } .views { grid-template-columns: 1fr; gap: 30px; } figure { max-width: 768px; } .phone { max-width: 390px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header><div><h1>六副带鹰 · 响应式界面预览</h1><p>同一套页面，随窗口宽度自动调整布局</p></div><span class="tag">前端设计 · 浏览器实际截图</span></header>
+    <div class="views">
+      <figure><figcaption><strong>电脑宽屏 · 1440px</strong><small>牌池在左，对家计数与流水在右；普通牌 6 列</small></figcaption><img src="screenshots/desktop-1440.jpg" alt="1440像素宽屏下的双栏布局"><div class="note"><strong>本次确认的规则与操作</strong><p><b>大王 / 小王 / 鹰 / 3</b>：每种 6 张；<b>普通牌</b>：每种 24 张。</p><p><b>对家初始手牌</b>：由你填写，图中 54 张仅为示例。</p><p><b>全场按牌种记录</b>与<b>对家按张数计数</b>分别操作。</p></div></figure>
+      <figure><figcaption><strong>平板窗口 · 768px</strong><small>自动上下排列，对家输入与剩余数并排</small></figcaption><img src="screenshots/tablet-768.jpg" alt="768像素窗口下的上下布局"></figure>
+      <figure class="phone"><figcaption><strong>手机窗口 · 390px</strong><small>牌种 4 列，张数面板从底部打开</small></figcaption><img src="screenshots/mobile-quantity-390.jpg" alt="390像素手机窗口下的底部数量选择面板"><div class="note"><strong>随窗口适配</strong><p>320px 窄窗口无横向溢出。</p><p>特殊牌选 1–6 张。</p><p>普通牌选 1–24 张。</p></div></figure>
+    </div>
+    <footer>仅前端原型 · 所有已出与剩余数字均为示例 · 设计确认后再接入记牌算法</footer>
+  </main>
+</body>
+</html>
