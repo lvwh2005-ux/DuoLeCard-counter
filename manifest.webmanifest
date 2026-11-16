@@ -1,0 +1,11 @@
+{
+  "name": "多乐够级记牌器 · 六副带鹰",
+  "short_name": "记牌器",
+  "lang": "zh-CN",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f5f9",
+  "theme_color": "#2563eb",
+  "icons": [{ "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}
