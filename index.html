@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f3f5f9">
   <title>多乐够级记牌器 · 六副带鹰</title>
-  <meta name="description" content="六副带鹰够级记牌器：全场牌种统计、对家自定义张数、独立撤销、本机续存与备份。">
+  <meta name="description" content="六副带鹰够级记牌器：整手记录、带2出牌、对家自动联动、修改撤销、本机续存与备份。">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="./icon.svg">
   <style>
@@ -261,10 +261,53 @@
       .summary-item { padding: 0 8px; }
     }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; } }
+    .history-side { display: grid; justify-items: end; gap: 6px; }
+    .history-edit { border: 1px solid var(--line); background: #f7f9fd; border-radius: 6px; color: var(--blue); padding: 4px 9px; font-size: 11px; }
+    .history-row > div { min-width: 0; }
+    .history-rank { overflow-wrap: anywhere; }
+    .opponent-tip { font-size: 11px; line-height: 1.8; text-align: left; color: #71839e; }
+    .legacy-note { font-size: 11px; color: #976719; background: #fff8e9; border-radius: 8px; padding: 10px; margin-top: 12px; }
+    .actor-picker { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; padding: 4px; border-radius: 12px; background: #f0f3f9; }
+    .actor-picker button { border: 1px solid transparent; border-radius: 9px; background: transparent; min-height: 40px; font-size: 13px; font-weight: 650; }
+    .actor-picker button[aria-pressed="true"] { background: white; border-color: #ccdcfa; color: var(--blue); box-shadow: 0 2px 6px #2038590b; }
+    .quantity-label { margin: 17px 0 9px; }
+    .quantity-grid button[aria-pressed="true"], .twos-choices button[aria-pressed="true"] { color: white; border-color: var(--blue); background: var(--blue); }
+    .quantity-grid button { min-height: 42px; font-size: 16px; }
+    .twos-controls { display: flex; align-items: center; gap: 12px; }
+    .twos-choices { display: grid; grid-template-columns: 1.5fr repeat(4, 1fr); gap: 6px; flex: 1; }
+    .twos-choices button { min-height: 40px; min-width: 0; border: 1px solid var(--line); background: #f7f9fd; border-radius: 8px; font-size: 13px; }
+    .twos-custom { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
+    .twos-custom input { width: 51px; min-height: 40px; border: 1px solid var(--line); border-radius: 8px; text-align: center; background: white; color: var(--ink); }
+    .play-preview { background: var(--blue-soft); border: 1px solid #dbe7fc; border-radius: 11px; padding: 12px; margin-top: 18px; }
+    .play-preview strong { display: block; font-size: 14px; }
+    .play-preview p { font-size: 11px; color: #6d82a5; margin-top: 4px; }
+    .play-submit { display: grid; grid-template-columns: auto 1fr; gap: 9px; margin-top: 14px; position: sticky; bottom: -1px; background: white; padding: 8px 0; }
+    .play-submit .primary { grid-column: 2; min-height: 44px; }
+    .play-submit .primary:first-child, .play-submit .primary:only-child { grid-column: 1 / -1; }
+    .play-submit:has([hidden]) .primary { grid-column: 1 / -1; }
+    .button.danger { color: #bd4850; }
+    @media (min-width: 600px) and (max-width: 899px) { .opponent-tip { display: block; grid-column: 2; grid-row: 4; margin-top: 0; } }
+    @media (max-width: 599px) {
+      .counter-fields { display: block; }
+      .counter-fields .field-row { flex-wrap: nowrap; }
+      .counter-fields .field-row > label { width: auto; }
+      .counter-fields .initial-wrap { width: auto; }
+      .opponent-tip { display: block; }
+      #quantity-dialog { padding-top: 18px; }
+      #quantity-dialog .dialog-head { margin-bottom: 12px; }
+      #quantity-dialog .quantity-grid { gap: 6px; }
+      #quantity-dialog .quantity-grid button { min-height: 39px; font-size: 15px; }
+      .twos-controls { gap: 8px; }
+      .twos-choices { gap: 4px; }
+      .twos-custom { display: grid; justify-items: center; gap: 2px; }
+      .twos-custom input { min-height: 36px; width: 46px; }
+      .play-preview { margin-top: 12px; }
+      .play-submit { margin-top: 6px; }
+    }
   </style>
 </head>
 <body>
-  <div class="save-banner" id="save-banner" role="status"><strong id="save-status">自动保存在本机</strong><span class="save-detail" id="save-detail">　全场牌池与对家张数分别记录</span><button id="save-export" hidden>导出备份</button></div>
+  <div class="save-banner" id="save-banner" role="status"><strong id="save-status">自动保存在本机</strong><span class="save-detail" id="save-detail">　一手记一次 · 对家出牌自动联动</span><button id="save-export" hidden>导出备份</button></div>
   <noscript><p style="padding:16px;text-align:center">请开启浏览器 JavaScript 后使用记牌器。</p></noscript>
   <div class="app">
     <header class="topbar">
@@ -286,20 +329,19 @@
         <div class="tile-grid special-grid" id="special-grid"></div>
         <div class="section-head"><h3>普通牌</h3><span>4 至 2 · 每种 24 张</span></div>
         <div class="tile-grid normal-grid" id="normal-grid"></div>
-        <footer class="ledger-footer"><div class="ledger-tip"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7v.2"/></svg>点牌种 → 选张数，记录全场出牌</div><button class="button" data-undo-table disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 6-5 5 5 5M3 11h10a6 6 0 0 1 6 6"/></svg>撤销全场上一笔</button></footer>
+        <footer class="ledger-footer"><div class="ledger-tip"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7v.2"/></svg>点牌种 → 选张数与带 2 → 确认记录</div><button class="button" data-undo-table disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 6-5 5 5 5M3 11h10a6 6 0 0 1 6 6"/></svg>撤销上一手</button></footer>
       </section>
       <section class="panel opponent" aria-labelledby="opponent-title">
-        <div class="opponent-title"><h2 id="opponent-title">对家剩余</h2><span class="independent-tag">单独计数</span></div>
+        <div class="opponent-title"><h2 id="opponent-title">对家剩余</h2><span class="independent-tag">出牌自动联动</span></div>
         <div class="remain" id="opponent-number"><span id="opponent-remain">--</span><small>张</small></div>
         <p class="opponent-meta" id="opponent-meta">先填写对家初始手牌</p>
         <div class="progress" aria-hidden="true"><span id="opponent-progress"></span></div>
         <div class="counter-fields">
           <div class="field-row"><label for="initial-hand">初始手牌</label><div class="initial-wrap"><input class="initial-input" id="initial-hand" type="number" min="0" max="312" step="1" inputmode="numeric" placeholder="填写" aria-describedby="opponent-error" aria-label="自定义对家初始手牌张数"><span>张</span></div></div>
-          <div class="field-row"><label for="opponent-quantity">本次出了</label><div class="stepper"><button type="button" id="minus" aria-label="出牌张数减一">−</button><input id="opponent-quantity" type="number" min="1" max="312" step="1" inputmode="numeric" value="1" aria-describedby="opponent-error" aria-label="本次对家出牌张数"><button type="button" id="plus" aria-label="出牌张数加一">+</button></div></div>
         </div>
-        <div class="opponent-actions"><button class="button primary" id="record-opponent" disabled>记录对家出牌</button><button class="button icon" id="undo-opponent" disabled aria-label="撤销对家上一笔" title="撤销对家上一笔"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 6-5 5 5 5M3 11h10a6 6 0 0 1 6 6"/></svg></button></div>
         <p id="opponent-error" class="field-error" role="status" hidden></p>
-        <p class="opponent-tip">只需填写张数，无需选择牌种</p>
+        <p class="opponent-tip">在牌种弹窗切换为“对家”，主牌和带出的 2 会一起扣减，无需重复记录。</p>
+        <p id="legacy-note" class="legacy-note" hidden>旧版记录已保留原统计，尚未自动配对。新出牌按整手联动记录。</p>
       </section>
       <section class="panel history" id="history" aria-labelledby="history-title">
         <header class="history-title"><h2 id="history-title">全场出牌记录</h2><span id="history-count">共 0 笔</span></header>
@@ -309,12 +351,24 @@
     </main>
     <footer class="page-footer">六副带鹰 · 固定牌池<span>·</span>对家初始张数自定义<span class="desktop-note">　窗口缩放自动适配</span></footer>
   </div>
-  <div class="mobile-toolbar"><button class="button" data-undo-table disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 6-5 5 5 5M3 11h10a6 6 0 0 1 6 6"/></svg>撤销全场上一笔</button><button class="button icon" id="history-scroll" aria-label="查看出牌记录"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.1M4 12h.1M4 18h.1"/></svg></button></div>
-  <dialog id="quantity-dialog" aria-labelledby="quantity-title"><header class="dialog-head"><div class="dialog-title"><span class="rank-pill" id="dialog-rank">Q</span><div><h2 id="quantity-title">记录全场出牌</h2><p class="subtitle" id="quantity-meta">全场剩 20 张 · 共 24 张</p></div></div><button class="dialog-close" data-close aria-label="关闭张数面板"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header><div class="quantity-label"><strong>出几张？</strong><span>点数字即记录</span></div><div class="quantity-grid" id="quantity-grid"></div><p class="dialog-note">全场牌池与对家剩余张数分别记录</p></dialog>
+  <div class="mobile-toolbar"><button class="button" data-undo-table disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 6-5 5 5 5M3 11h10a6 6 0 0 1 6 6"/></svg>撤销上一手</button><button class="button icon" id="history-scroll" aria-label="查看出牌记录"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.1M4 12h.1M4 18h.1"/></svg></button></div>
+  <dialog id="quantity-dialog" aria-labelledby="quantity-title">
+    <header class="dialog-head"><div class="dialog-title"><span class="rank-pill" id="dialog-rank">Q</span><div><h2 id="quantity-title">记录一手出牌</h2><p class="subtitle" id="quantity-meta"></p></div></div><button class="dialog-close" data-close aria-label="关闭张数面板"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header>
+    <div class="actor-picker" role="group" aria-label="出牌人"><button type="button" data-actor="other" aria-pressed="true">其他人</button><button type="button" data-actor="opponent" aria-pressed="false">对家</button></div>
+    <div class="quantity-label"><strong id="main-quantity-label">主牌张数</strong><span id="main-quantity-hint">不含带出的 2</span></div>
+    <div class="quantity-grid" id="quantity-grid" role="group" aria-label="主牌张数"></div>
+    <div id="twos-section">
+      <div class="quantity-label"><strong>带 2 的张数</strong><span id="twos-available"></span></div>
+      <div class="twos-controls"><div class="twos-choices" role="group" aria-label="快捷选择带2张数"><button type="button" data-twos="0" aria-pressed="true">不带</button><button type="button" data-twos="1" aria-pressed="false">1</button><button type="button" data-twos="2" aria-pressed="false">2</button><button type="button" data-twos="3" aria-pressed="false">3</button><button type="button" data-twos="4" aria-pressed="false">4</button></div><label class="twos-custom" for="twos-input">自填<input id="twos-input" type="number" min="0" max="24" step="1" inputmode="numeric" value="0" aria-label="自定义带2张数" aria-describedby="play-error"></label></div>
+    </div>
+    <div class="play-preview" role="status" aria-live="polite"><strong id="play-summary">请选择主牌张数</strong><p id="play-effect"></p></div>
+    <p class="field-error" id="play-error" role="status" hidden></p>
+    <div class="play-submit"><button class="button danger" id="remove-play" hidden>撤销这手牌</button><button class="button primary" id="save-play" disabled>确认记录 · 其他人</button></div>
+  </dialog>
   <dialog id="rules-dialog" aria-labelledby="rules-title">
     <header class="dialog-head"><h2 id="rules-title">六副带鹰 · 规则与备份</h2><button class="dialog-close" data-close aria-label="关闭规则面板"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header>
     <div class="rule-row"><span>大王</span><strong>6 张</strong></div><div class="rule-row"><span>小王</span><strong>6 张</strong></div><div class="rule-row"><span>鹰</span><strong>6 张</strong></div><div class="rule-row"><span>3</span><strong>6 张</strong></div><div class="rule-row"><span>4 至 2，每种普通牌</span><strong>24 张</strong></div><div class="rule-row"><span>总牌数</span><strong>312 张</strong></div><div class="rule-row"><span>对家初始手牌</span><span>按实际情况填写</span></div>
-    <p class="dialog-note">对家出牌需分别记入全场牌种及对家张数。记录保存在当前浏览器，可用备份转移到其他设备。</p>
+    <p class="dialog-note">一手牌只记一次，默认其他人、不带 2。切换“对家”后，主牌和带出的 2 一起扣减对家手牌。历史记录可修改归属、张数或整手撤销。记录保存在当前浏览器，可用备份转移到其他设备。</p>
     <div class="backup-actions"><button class="button" id="export-backup">导出备份</button><button class="button" id="import-backup">导入备份</button></div>
     <input type="file" id="backup-file" accept=".json,application/json" hidden>
   </dialog>
@@ -331,7 +385,7 @@
     <div class="dialog-actions"><button class="button" data-close>取消</button><button class="button primary" id="confirm-import">恢复此备份</button></div>
   </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script defer src="./counter.js?v=1"></script>
-  <script defer src="./app.js?v=1"></script>
+  <script defer src="./counter.js?v=2"></script>
+  <script defer src="./app.js?v=2"></script>
 </body>
 </html>

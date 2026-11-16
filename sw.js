@@ -1,7 +1,7 @@
 'use strict';
 const PREFIX = 'duole-card-counter-';
-const CACHE = PREFIX + 'v1';
-const ASSETS = ['./', './index.html', './counter.js?v=1', './app.js?v=1', './manifest.webmanifest', './icon.svg'];
+const CACHE = PREFIX + 'v2';
+const ASSETS = ['./', './index.html', './counter.js?v=2', './app.js?v=2', './manifest.webmanifest', './icon.svg'];
 const ASSET_URLS = new Set(ASSETS.map(path => new URL(path, self.registration.scope).href));
 
 self.addEventListener('install', event => {

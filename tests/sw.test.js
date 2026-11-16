@@ -52,16 +52,18 @@ function harness() {
 test('离线缓存：首次安装后页面和算法/交互脚本均能断网读取', async () => {
   const h = harness(); await h.lifecycle('install'); h.offline();
   assert.match(await (await h.request('./')).text(), /index\.html/);
-  assert.match(await (await h.request('./counter.js?v=1', 'cors')).text(), /counter\.js\?v=1/);
-  assert.match(await (await h.request('./app.js?v=1', 'cors')).text(), /app\.js\?v=1/);
+  assert.match(await (await h.request('./counter.js?v=2', 'cors')).text(), /counter\.js\?v=2/);
+  assert.match(await (await h.request('./app.js?v=2', 'cors')).text(), /app\.js\?v=2/);
 });
 
 test('更新缓存只清理本项目旧版本，保留其他项目缓存', async () => {
   const h = harness(); h.buckets.set('other-project-cache', new Map());
   h.buckets.set('duole-card-counter-v0', new Map());
+  h.buckets.set('duole-card-counter-v1', new Map());
   await h.lifecycle('install'); await h.lifecycle('activate');
   assert.ok(h.buckets.has('other-project-cache'));
-  assert.ok(h.buckets.has('duole-card-counter-v1'));
+  assert.ok(h.buckets.has('duole-card-counter-v2'));
+  assert.equal(h.buckets.has('duole-card-counter-v1'), false);
   assert.equal(h.buckets.has('duole-card-counter-v0'), false);
 });
 
